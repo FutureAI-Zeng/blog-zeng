@@ -6,7 +6,7 @@ export interface GiscusConfig {
 }
 
 export const SITE = {
-  title: '我的博客',
+  title: 'FutureAI-Zeng 的博客',
   description: '一个用 Astro + GitHub Pages 搭建的个人博客',
   author: 'Your Name',
   lang: 'zh-CN',

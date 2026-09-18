@@ -1,0 +1,37 @@
+---
+import { getPosts } from '../../utils/posts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import Pagination from '../../components/Pagination.astro';
+
+export async function getStaticPaths() {
+  const all = await getPosts();
+  const pageSize = 10;
+  const last = Math.max(1, Math.ceil(all.length / pageSize));
+  const paths = [];
+  for (let p = 2; p <= last; p++) {
+    paths.push({
+      params: { page: String(p) },
+      props: { posts: all.slice((p - 1) * pageSize, p * pageSize), current: p, last },
+    });
+  }
+  return paths;
+}
+
+const { posts, current, last } = Astro.props;
+---
+
+<BaseLayout>
+  <div class="home-grid">
+    <div class="home-main">
+      <ul class="post-card-list">
+        {posts.map((post) => (
+          <li><PostCard post={post} /></li>
+        ))}
+      </ul>
+      <Pagination current={current} last={last} />
+    </div>
+    <Sidebar />
+  </div>
+</BaseLayout>

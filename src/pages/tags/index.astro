@@ -10,7 +10,7 @@ const tags = groupByTags(await getPosts());
     <h1 class="page-title">标签</h1>
     <div class="tag-cloud big">
       {tags.map(([t, n]) => (
-        <a class="tag-cloud-item" href={`${base}tags/${encodeURIComponent(t)}`}>#{t}<sup>{n}</sup></a>
+        <a class="tag-cloud-item" href={`${base}tags/${encodeURIComponent(t)}/`}>#{t}<sup>{n}</sup></a>
       ))}
     </div>
   </div>

@@ -18,7 +18,7 @@ const base = import.meta.env.BASE_URL;
 ---
 <BaseLayout title={`分类：${category}`}>
   <div class="archive-page">
-    <a class="back-link" href={`${base}categories`}>← 全部分类</a>
+    <a class="back-link" href={`${base}categories/`}>← 全部分类</a>
     <h1 class="page-title">{category}</h1>
     <p class="page-count">{posts.length} 篇文章</p>
     <ul class="post-card-list">

@@ -13,7 +13,7 @@ const minutes = readingTime(post);
 <BaseLayout title={data.title} description={data.description}>
   <article class="post">
     <header class="post-header">
-      <a class="cat-badge" href={`${base}categories/${encodeURIComponent(data.category)}`}>{data.category}</a>
+      <a class="cat-badge" href={`${base}categories/${encodeURIComponent(data.category)}/`}>{data.category}</a>
       <h1>{data.title}</h1>
       <p class="post-meta">
         <FormattedDate date={data.pubDate} />
@@ -23,7 +23,7 @@ const minutes = readingTime(post);
       {data.tags.length > 0 && (
         <ul class="tag-list">
           {data.tags.map((t) => (
-            <li><a class="tag-badge" href={`${base}tags/${encodeURIComponent(t)}`}>#{t}</a></li>
+            <li><a class="tag-badge" href={`${base}tags/${encodeURIComponent(t)}/`}>#{t}</a></li>
           ))}
         </ul>
       )}

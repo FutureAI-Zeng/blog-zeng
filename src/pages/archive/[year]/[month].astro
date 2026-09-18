@@ -1,22 +1,15 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import PostCard from '../../../components/PostCard.astro';
-import { getPosts, type Post } from '../../../utils/posts';
+import { getPosts, groupByMonth, type Post } from '../../../utils/posts';
 import { SITE } from '../../../consts';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
-  const map = new Map<string, Post[]>();
-  for (const p of posts) {
-    const d = p.data.pubDate;
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(p);
-  }
-  return [...map.entries()].map(([key, ps]) => {
-    const [year, month] = key.split('-');
-    return { params: { year, month }, props: { year, month, posts: ps } };
-  });
+  return groupByMonth(posts).map(({ year, month, posts }) => ({
+    params: { year: String(year), month: String(month) },
+    props: { year: String(year), month: String(month), posts },
+  }));
 }
 
 const { year, month, posts } = Astro.props;
@@ -25,7 +18,7 @@ const label = `${year} 年 ${Number(month)} 月`;
 ---
 <BaseLayout title={`归档：${label}`}>
   <div class="archive-page">
-    <a class="back-link" href={`${base}archive`}>← 返回归档</a>
+    <a class="back-link" href={`${base}archive/`}>← 返回归档</a>
     <h1 class="page-title">{label}</h1>
     <p class="page-count">{posts.length} 篇文章</p>
     <ul class="post-card-list">

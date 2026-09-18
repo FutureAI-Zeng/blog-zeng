@@ -12,7 +12,7 @@ const minutes = readingTime(post);
 ---
 <article class="post-card">
   <div class="post-card-top">
-    <a class="cat-badge" href={`${base}categories/${encodeURIComponent(post.data.category)}`}>
+    <a class="cat-badge" href={`${base}categories/${encodeURIComponent(post.data.category)}/`}>
       {post.data.category}
     </a>
     <time datetime={post.data.pubDate.toISOString()}>
@@ -20,7 +20,8 @@ const minutes = readingTime(post);
     </time>
   </div>
   <h2 class="post-card-title">
-    <a href={`${base}posts/${post.id}`}>{post.data.title}</a>
+    {post.data.pinned && <span class="pin-badge">📌 置顶</span>}
+    <a href={`${base}posts/${post.id}/`}>{post.data.title}</a>
   </h2>
   {post.data.description && <p class="post-card-desc">{post.data.description}</p>}
   <div class="post-card-meta">
@@ -28,9 +29,25 @@ const minutes = readingTime(post);
     <ul class="tag-list">
       {post.data.tags.map((t) => (
         <li>
-          <a class="tag-badge" href={`${base}tags/${encodeURIComponent(t)}`}>#{t}</a>
+          <a class="tag-badge" href={`${base}tags/${encodeURIComponent(t)}/`}>#{t}</a>
         </li>
       ))}
     </ul>
   </div>
 </article>
+
+<style>
+  .pin-badge {
+    display: inline-block;
+    margin-right: 6px;
+    font-size: .72rem;
+    font-weight: 600;
+    line-height: 1.6;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: 999px;
+    padding: 0 8px;
+    vertical-align: middle;
+  }
+</style>

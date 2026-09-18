@@ -11,7 +11,7 @@ const cats = groupByCategories(await getPosts());
     <ul class="cat-index">
       {cats.map(([c, n]) => (
         <li>
-          <a href={`${base}categories/${encodeURIComponent(c)}`}>{c}</a>
+          <a href={`${base}categories/${encodeURIComponent(c)}/`}>{c}</a>
           <span class="cat-count">{n}</span>
         </li>
       ))}

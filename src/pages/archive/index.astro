@@ -17,7 +17,7 @@ const years = groupByYear(await getPosts());
               <time datetime={p.data.pubDate.toISOString()}>
                 {p.data.pubDate.toLocaleDateString('zh-CN')}
               </time>
-              <a href={`${base}posts/${p.id}`}>{p.data.title}</a>
+              <a href={`${base}posts/${p.id}/`}>{p.data.title}</a>
               <span class="archive-cat">{p.data.category}</span>
             </li>
           ))}

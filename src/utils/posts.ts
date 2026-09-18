@@ -2,11 +2,14 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 
 export type Post = CollectionEntry<'posts'>;
 
-/** 获取已发布文章，按时间倒序 */
+/** 获取已发布文章，置顶优先、再按时间倒序 */
 export async function getPosts(): Promise<Post[]> {
-  return (await getCollection('posts', ({ data }) => !data.draft)).sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-  );
+  return (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => {
+    const pa = a.data.pinned ? 1 : 0;
+    const pb = b.data.pinned ? 1 : 0;
+    if (pa !== pb) return pb - pa; // 置顶文章排最前
+    return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+  });
 }
 
 /** 估算阅读时长（中文按 350 字/分，英文按 200 词/分） */

@@ -11,6 +11,7 @@ const posts = defineCollection({
     category: z.string().default('未分类'),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
+    pinned: z.boolean().default(false),
   }),
 });
 

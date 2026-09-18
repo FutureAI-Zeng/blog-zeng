@@ -13,5 +13,5 @@ export default defineConfig({
   site,
   base,
   integrations: [sitemap()],
-  trailingSlash: 'ignore',
+  trailingSlash: 'always',
 });

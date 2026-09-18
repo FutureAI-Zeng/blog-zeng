@@ -18,7 +18,7 @@ const base = import.meta.env.BASE_URL;
 ---
 <BaseLayout title={`标签：${tag}`}>
   <div class="archive-page">
-    <a class="back-link" href={`${base}tags`}>← 全部标签</a>
+    <a class="back-link" href={`${base}tags/`}>← 全部标签</a>
     <h1 class="page-title">#{tag}</h1>
     <p class="page-count">{posts.length} 篇文章</p>
     <ul class="post-card-list">

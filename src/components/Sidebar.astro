@@ -16,7 +16,7 @@ const giscusRepo = SITE.giscus.repo;
     <ul class="cat-cloud">
       {cats.map(([c, n]) => (
         <li>
-          <a href={`${base}categories/${encodeURIComponent(c)}`}>{c} <span>{n}</span></a>
+          <a href={`${base}categories/${encodeURIComponent(c)}/`}>{c} <span>{n}</span></a>
         </li>
       ))}
     </ul>
@@ -25,23 +25,51 @@ const giscusRepo = SITE.giscus.repo;
   <section class="widget">
     <h3 class="widget-title">标签统计</h3>
     <div class="tag-cloud">
-      {tags.map(([t, n]) => (
-        <a class="tag-cloud-item" href={`${base}tags/${encodeURIComponent(t)}`}>#{t}<sup>{n}</sup></a>
+      {tags.slice(0, 20).map(([t, n]) => (
+        <a class="tag-cloud-item" href={`${base}tags/${encodeURIComponent(t)}/`}>#{t}<sup>{n}</sup></a>
       ))}
     </div>
+    {tags.length > 20 && (
+      <>
+        <button type="button" class="more-toggle" id="tag-more-btn" aria-expanded="false">
+          <span class="more-label">更多标签</span> <span class="arrow">▾</span>
+        </button>
+        <div class="tag-cloud tag-cloud-more" id="tag-more-list" hidden>
+          {tags.slice(20).map(([t, n]) => (
+            <a class="tag-cloud-item" href={`${base}tags/${encodeURIComponent(t)}/`}>#{t}<sup>{n}</sup></a>
+          ))}
+        </div>
+      </>
+    )}
   </section>
 
   <section class="widget">
     <h3 class="widget-title">日期统计</h3>
     <ul class="date-cloud">
-      {months.map((m) => (
+      {months.slice(0, 12).map((m) => (
         <li>
-          <a href={`${base}archive/${m.year}/${m.month}`}>
+          <a href={`${base}archive/${m.year}/${m.month}/`}>
             {m.label} <span>{m.count}</span>
           </a>
         </li>
       ))}
     </ul>
+    {months.length > 12 && (
+      <>
+        <button type="button" class="more-toggle" id="date-more-btn" aria-expanded="false">
+          <span class="more-label">更多月份</span> <span class="arrow">▾</span>
+        </button>
+        <ul class="date-cloud date-cloud-more" id="date-more-list" hidden>
+          {months.slice(12).map((m) => (
+            <li>
+              <a href={`${base}archive/${m.year}/${m.month}/`}>
+                {m.label} <span>{m.count}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
   </section>
 
   <section class="widget">
@@ -89,3 +117,42 @@ const giscusRepo = SITE.giscus.repo;
       .catch(() => { el.innerHTML = '<li class="lc-empty">评论加载失败，请稍后重试</li>'; });
   </script>
 )}
+
+<style>
+  .more-toggle {
+    margin-top: 10px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--accent);
+    font-size: .85rem;
+    cursor: pointer;
+    padding: 6px 0;
+    border-top: 1px dashed var(--border);
+  }
+  .more-toggle:hover { text-decoration: underline; }
+  .date-cloud-more { margin-top: 10px; }
+  /* hidden 属性默认 display:none，但被 .date-cloud/.tag-cloud 的 display:flex 覆盖，
+     这里强制让折叠列表在未展开时隐藏 */
+  .date-cloud-more[hidden],
+  .tag-cloud-more[hidden] { display: none !important; }
+</style>
+
+<script is:inline>
+  (function () {
+    function bindToggle(btnId, listId, moreText) {
+      var btn = document.getElementById(btnId);
+      var list = document.getElementById(listId);
+      if (!btn || !list) return;
+      btn.addEventListener('click', function () {
+        var open = !list.hidden;
+        list.hidden = open;
+        btn.setAttribute('aria-expanded', String(!open));
+        btn.querySelector('.more-label').textContent = open ? moreText : '收起';
+        btn.querySelector('.arrow').textContent = open ? '▾' : '▴';
+      });
+    }
+    bindToggle('date-more-btn', 'date-more-list', '更多月份');
+    bindToggle('tag-more-btn', 'tag-more-list', '更多标签');
+  })();
+</script>
