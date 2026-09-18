@@ -1,0 +1,44 @@
+---
+import { getPosts } from '../utils/posts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { SITE } from '../consts';
+
+const posts = await getPosts();
+const base = import.meta.env.BASE_URL;
+const [featured, ...rest] = posts;
+---
+<BaseLayout>
+  <section class="hero">
+    <h1>{SITE.title}</h1>
+    <p class="hero-sub">{SITE.description}</p>
+  </section>
+
+  <section class="intro">
+    <div class="intro-avatar">{SITE.author.slice(0, 1)}</div>
+    <div class="intro-text">
+      <p class="intro-name">{SITE.author}</p>
+      <p class="intro-bio">
+        这里是 {SITE.author} 的个人博客。专注后端技术与大模型应用，平时记录 Java、大数据、AI 项目的实战经验与读书笔记，也会写一些生活随笔与面试复盘。欢迎在评论区交流 👋
+      </p>
+    </div>
+  </section>
+
+  <div class="home-grid">
+    <div class="home-main">
+      {featured && (
+        <section class="featured">
+          <span class="section-label">最新发布</span>
+          <PostCard post={featured} />
+        </section>
+      )}
+      <ul class="post-card-list">
+        {rest.map((post) => (
+          <li><PostCard post={post} /></li>
+        ))}
+      </ul>
+    </div>
+    <Sidebar />
+  </div>
+</BaseLayout>

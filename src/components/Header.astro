@@ -1,0 +1,28 @@
+---
+import { SITE } from '../consts';
+import ThemeToggle from './ThemeToggle.astro';
+const base = import.meta.env.BASE_URL;
+const nav = [
+  { href: `${base}`, label: '首页' },
+  { href: `${base}categories/${encodeURIComponent('技术')}`, label: '技术' },
+  { href: `${base}categories/${encodeURIComponent('随笔')}`, label: '随笔' },
+  { href: `${base}archive`, label: '归档' },
+  { href: `${base}categories/${encodeURIComponent('面试')}`, label: '面试' },
+  { href: `${base}projects`, label: '项目' },
+  { href: `${base}about`, label: '关于' },
+];
+---
+<header class="site-header">
+  <a class="site-title" href={base}>{SITE.title}</a>
+  <nav>
+    <form class="header-search" action={`${base}search`} method="get" role="search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="search" name="q" placeholder="搜索文章、标签…" aria-label="搜索" />
+    </form>
+    {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    <ThemeToggle />
+  </nav>
+</header>

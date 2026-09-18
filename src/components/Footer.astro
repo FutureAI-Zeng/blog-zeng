@@ -1,0 +1,11 @@
+---
+import { SITE } from '../consts';
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <p>© {year} {SITE.author} · 由 <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> 驱动 · 部署于 GitHub Pages</p>
+  <p class="stats">
+    访客 <span id="vercount_value_site_uv">0</span> · 总访问 <span id="vercount_value_site_pv">0</span>
+  </p>
+  <script is:inline async src="https://vercount.one/js"></script>
+</footer>

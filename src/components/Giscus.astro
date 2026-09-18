@@ -1,0 +1,44 @@
+---
+import { SITE } from '../consts';
+const { giscus } = SITE;
+const enabled = giscus.repo && giscus.repoId && giscus.categoryId;
+---
+{enabled ? (
+  <section class="giscus-wrapper" aria-label="评论区">
+    <script
+      src="https://giscus.app/client.js"
+      data-repo={giscus.repo}
+      data-repo-id={giscus.repoId}
+      data-category={giscus.category}
+      data-category-id={giscus.categoryId}
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="bottom"
+      data-theme="preferred_color_scheme"
+      data-lang="zh-CN"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async
+    ></script>
+    <script is:inline>
+      // 主题切换时同步 Giscus 配色
+      function syncGiscusTheme() {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        iframe.contentWindow.postMessage({ giscus: { setConfig: { theme } } }, 'https://giscus.app');
+      }
+      document.addEventListener('theme-changed', syncGiscusTheme);
+    </script>
+  </section>
+) : (
+  <section class="giscus-placeholder" aria-label="评论区占位">
+    <p class="gp-title">💬 评论与 👍 点赞</p>
+    <p class="gp-hint">
+      启用 Giscus 后，这里会自动出现评论框与点赞（👍 reaction）。<br />
+      需要：①仓库开启 <strong>Discussions</strong> ②安装 <strong>giscus</strong> app ③把 <code>repo-id / category-id</code> 填入站点配置。
+    </p>
+  </section>
+)}

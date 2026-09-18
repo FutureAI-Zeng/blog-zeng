@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+const base = import.meta.env.BASE_URL;
+---
+<BaseLayout title="搜索" description="搜索全站文章">
+  <div class="archive-page">
+    <h1 class="page-title">搜索</h1>
+    <input id="search-input" class="search-input" type="search" placeholder="输入关键词，如 大模型、Java、博客…" autofocus />
+    <p id="search-stat" class="page-count"></p>
+    <ul id="search-results" class="post-card-list"></ul>
+  </div>
+
+  <script is:inline define:vars={{ base }}>
+    const input = document.getElementById('search-input');
+    const results = document.getElementById('search-results');
+    const stat = document.getElementById('search-stat');
+    let INDEX = [];
+
+    function run() {
+      const q = input.value.trim().toLowerCase();
+      if (!q) { results.innerHTML = ''; stat.textContent = ''; return; }
+      const hit = INDEX.filter((it) =>
+        (it.title + ' ' + it.description + ' ' + it.tags.join(' ') + ' ' + it.category + ' ' + it.text)
+          .toLowerCase()
+          .includes(q)
+      );
+      stat.textContent = `找到 ${hit.length} 条结果`;
+      results.innerHTML = hit
+        .map(
+          (it) => `<li><article class="post-card">
+            <div class="post-card-top">
+              <a class="cat-badge" href="${base}categories/${encodeURIComponent(it.category)}">${it.category}</a>
+              <time>${it.date}</time>
+            </div>
+            <h2 class="post-card-title"><a href="${it.url}">${it.title}</a></h2>
+            <p class="post-card-desc">${it.description}</p>
+            <ul class="tag-list">${it.tags
+              .map((t) => `<li><a class="tag-badge" href="${base}tags/${encodeURIComponent(t)}">#${t}</a></li>`)
+              .join('')}</ul>
+          </article></li>`
+        )
+        .join('');
+    }
+
+    fetch(base + 'search-index.json')
+      .then((r) => r.json())
+      .then((d) => {
+        INDEX = d;
+        const q = new URLSearchParams(location.search).get('q');
+        if (q) { input.value = q; run(); }
+      });
+
+    input.addEventListener('input', run);
+  </script>
+</BaseLayout>

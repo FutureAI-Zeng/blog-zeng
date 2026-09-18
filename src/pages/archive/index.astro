@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, groupByYear } from '../../utils/posts';
+import { SITE } from '../../consts';
+const base = import.meta.env.BASE_URL;
+const years = groupByYear(await getPosts());
+---
+<BaseLayout title="归档" description="文章归档">
+  <div class="archive-page">
+    <h1 class="page-title">归档</h1>
+    {years.map(([year, posts]) => (
+      <section class="archive-year">
+        <h2 class="year-title">{year} <span>（{posts.length}）</span></h2>
+        <ul class="archive-list">
+          {posts.map((p) => (
+            <li>
+              <time datetime={p.data.pubDate.toISOString()}>
+                {p.data.pubDate.toLocaleDateString('zh-CN')}
+              </time>
+              <a href={`${base}posts/${p.id}`}>{p.data.title}</a>
+              <span class="archive-cat">{p.data.category}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</BaseLayout>

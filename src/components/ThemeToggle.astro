@@ -1,0 +1,36 @@
+---
+// 五风格切换：浅色 / 深色 / 护眼 / 森林 / 日落
+---
+<button id="theme-toggle" class="theme-toggle" aria-label="切换主题" title="切换主题">🌓</button>
+<script is:inline>
+  const btn = document.getElementById('theme-toggle');
+  const themes = ['light', 'dark', 'sepia', 'forest', 'sunset'];
+  const icons = { light: '☀️', dark: '🌙', sepia: '📜', forest: '🌲', sunset: '🌅' };
+  const names = { light: '浅色', dark: '深色', sepia: '护眼', forest: '森林', sunset: '日落' };
+  function current() {
+    const r = document.documentElement;
+    if (r.classList.contains('dark')) return 'dark';
+    if (r.classList.contains('sepia')) return 'sepia';
+    if (r.classList.contains('forest')) return 'forest';
+    if (r.classList.contains('sunset')) return 'sunset';
+    return 'light';
+  }
+  function render(t) {
+    btn.textContent = icons[t];
+    btn.title = '主题：' + names[t] + '（点击切换）';
+    btn.setAttribute('aria-label', '切换主题：' + names[t]);
+  }
+  function apply(t) {
+    const r = document.documentElement;
+    r.classList.remove('dark', 'sepia', 'forest', 'sunset');
+    if (t !== 'light') r.classList.add(t);
+    try { localStorage.setItem('theme', t); } catch (e) {}
+    render(t);
+    window.dispatchEvent(new Event('theme-changed'));
+  }
+  btn?.addEventListener('click', () => {
+    const i = themes.indexOf(current());
+    apply(themes[(i + 1) % themes.length]);
+  });
+  render(current());
+</script>

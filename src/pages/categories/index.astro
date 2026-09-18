@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, groupByCategories } from '../../utils/posts';
+import { SITE } from '../../consts';
+const base = import.meta.env.BASE_URL;
+const cats = groupByCategories(await getPosts());
+---
+<BaseLayout title="分类" description="全部分类">
+  <div class="archive-page">
+    <h1 class="page-title">分类</h1>
+    <ul class="cat-index">
+      {cats.map(([c, n]) => (
+        <li>
+          <a href={`${base}categories/${encodeURIComponent(c)}`}>{c}</a>
+          <span class="cat-count">{n}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>

@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL;
+---
+<BaseLayout title="关于">
+  <div class="archive-page">
+    <h1 class="page-title">关于</h1>
+    <article class="prose">
+      <p>这是我的个人博客，使用 <strong>Astro</strong> + <strong>GitHub Pages</strong> 搭建。</p>
+      <ul>
+        <li>写作采用 Markdown，支持分类、多标签与归档</li>
+        <li>评论与点赞由 <strong>Giscus</strong> 提供（数据存在 GitHub Discussions）</li>
+        <li>阅读量由 <strong>Vercount</strong> 统计</li>
+        <li>部署通过 GitHub Actions 自动完成，push 即上线</li>
+      </ul>
+      <p>想看更多？去 <a href={`${base}archive`}>归档</a> 或 <a href={`${base}tags`}>标签</a> 页面逛逛吧。</p>
+    </article>
+  </div>
+</BaseLayout>

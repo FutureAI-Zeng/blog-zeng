@@ -1,0 +1,91 @@
+---
+import { getPosts, groupByTags, groupByCategories, groupByMonth } from '../utils/posts';
+import { SITE } from '../consts';
+const base = import.meta.env.BASE_URL;
+const posts = await getPosts();
+const tags = groupByTags(posts);
+const cats = groupByCategories(posts);
+const months = groupByMonth(posts);
+const total = posts.length;
+const giscusEnabled = SITE.giscus.repo && SITE.giscus.repoId && SITE.giscus.categoryId;
+const giscusRepo = SITE.giscus.repo;
+---
+<aside class="sidebar">
+  <section class="widget">
+    <h3 class="widget-title">分类统计</h3>
+    <ul class="cat-cloud">
+      {cats.map(([c, n]) => (
+        <li>
+          <a href={`${base}categories/${encodeURIComponent(c)}`}>{c} <span>{n}</span></a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="widget">
+    <h3 class="widget-title">标签统计</h3>
+    <div class="tag-cloud">
+      {tags.map(([t, n]) => (
+        <a class="tag-cloud-item" href={`${base}tags/${encodeURIComponent(t)}`}>#{t}<sup>{n}</sup></a>
+      ))}
+    </div>
+  </section>
+
+  <section class="widget">
+    <h3 class="widget-title">日期统计</h3>
+    <ul class="date-cloud">
+      {months.map((m) => (
+        <li>
+          <a href={`${base}archive/${m.year}/${m.month}`}>
+            {m.label} <span>{m.count}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="widget">
+    <h3 class="widget-title">最新评论</h3>
+    {giscusEnabled ? (
+      <ul class="comment-list" id="latest-comments"></ul>
+    ) : (
+      <p class="widget-hint">启用 Giscus 后自动显示读者最新评论</p>
+    )}
+  </section>
+
+  <section class="widget stat-widget">
+    <p>共 <strong>{total}</strong> 篇文章</p>
+  </section>
+</aside>
+
+{giscusEnabled && (
+  <script is:inline define:vars={{ repo: giscusRepo, base }}>
+    const el = document.getElementById('latest-comments');
+    function esc(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    fetch('https://giscus.app/api/discussions?repo=' + encodeURIComponent(repo))
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data) => {
+        const comments = [];
+        (data || []).forEach((d) => {
+          (d.comments || []).forEach((c) => {
+            comments.push({ login: c.author.login, avatar: c.author.avatarUrl, body: c.body, url: c.url, title: d.title, createdAt: c.createdAt });
+          });
+        });
+        comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const top = comments.slice(0, 5);
+        if (!top.length) { el.innerHTML = '<li class="lc-empty">还没有评论，来抢沙发 🛋️</li>'; return; }
+        el.innerHTML = top.map((c) => {
+          const postHref = (c.title && c.title.startsWith('/')) ? base + c.title.slice(1) : c.url;
+          return `<li class="comment-item">
+            <img class="lc-avatar" src="${esc(c.avatar)}" alt="" loading="lazy" />
+            <div class="lc-main">
+              <a class="lc-author" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.login)}</a>
+              <span class="lc-post"> 在 <a href="${esc(postHref)}">${esc(c.title || '文章')}</a></span>
+              <p class="lc-text">${esc(c.body).slice(0, 72)}</p>
+            </div>
+          </li>`;
+        }).join('');
+      })
+      .catch(() => { el.innerHTML = '<li class="lc-empty">评论加载失败，请稍后重试</li>'; });
+  </script>
+)}

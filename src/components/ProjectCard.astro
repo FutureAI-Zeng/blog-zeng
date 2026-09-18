@@ -1,0 +1,24 @@
+---
+import type { CollectionEntry } from 'astro:content';
+const { project } = Astro.props as { project: CollectionEntry<'projects'> };
+const { data } = project;
+const base = import.meta.env.BASE_URL;
+---
+<article class="project-card">
+  <div class="project-body">
+    <div class="project-head">
+      <h2 class="project-title">{data.title}</h2>
+      <span class="project-status">{data.status}</span>
+    </div>
+    {data.description && <p class="project-desc">{data.description}</p>}
+    <ul class="tag-list">
+      {data.tags.map((t) => (
+        <li><span class="tag-badge">#{t}</span></li>
+      ))}
+    </ul>
+    <div class="project-links">
+      {data.url && <a class="btn ghost" href={data.url} target="_blank" rel="noopener">演示 ↗</a>}
+      {data.repo && <a class="btn ghost" href={data.repo} target="_blank" rel="noopener">代码 ↗</a>}
+    </div>
+  </div>
+</article>

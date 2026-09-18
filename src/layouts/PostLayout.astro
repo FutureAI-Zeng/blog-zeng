@@ -1,0 +1,39 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Giscus from '../components/Giscus.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import { readingTime, type Post } from '../utils/posts';
+import { SITE } from '../consts';
+
+const { post } = Astro.props;
+const { data } = post;
+const base = import.meta.env.BASE_URL;
+const minutes = readingTime(post);
+---
+<BaseLayout title={data.title} description={data.description}>
+  <article class="post">
+    <header class="post-header">
+      <a class="cat-badge" href={`${base}categories/${encodeURIComponent(data.category)}`}>{data.category}</a>
+      <h1>{data.title}</h1>
+      <p class="post-meta">
+        <FormattedDate date={data.pubDate} />
+        {data.updatedDate && <> · 更新于 <FormattedDate date={data.updatedDate} /></>}
+        · ⏱ {minutes} 分钟阅读
+      </p>
+      {data.tags.length > 0 && (
+        <ul class="tag-list">
+          {data.tags.map((t) => (
+            <li><a class="tag-badge" href={`${base}tags/${encodeURIComponent(t)}`}>#{t}</a></li>
+          ))}
+        </ul>
+      )}
+    </header>
+    <div class="prose">
+      <slot />
+    </div>
+    <footer class="post-footer">
+      <p class="page-views">本文阅读量：<span id="vercount_value_page_pv">0</span> 次</p>
+    </footer>
+    <Giscus />
+  </article>
+</BaseLayout>
