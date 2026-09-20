@@ -1,0 +1,53 @@
+name: Sync from cnblogs
+
+# 两种触发方式：
+# 1) 手动：GitHub 仓库 → Actions → "Sync from cnblogs" → Run workflow
+# 2) 定时：默认每周一 UTC 02:00（北京时间 10:00），可改 cron 或删掉 schedule 段
+on:
+  workflow_dispatch:
+    inputs:
+      update:
+        description: '额外检查最新 N 篇文章是否更新（0=不检查）'
+        required: false
+        default: '0'
+  schedule:
+    - cron: '0 2 * * 1'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install markdownify beautifulsoup4 lxml pyyaml
+
+      - name: Run cnblogs sync
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.update }}" ] && [ "${{ github.event.inputs.update }}" != "0" ]; then
+            ARGS="--update ${{ github.event.inputs.update }}"
+          fi
+          python scripts/sync_cnblogs.py $ARGS
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore: 从 cnblogs 同步新文章"
+            git push
+            echo "已提交新文章，将触发部署"
+          else
+            echo "没有新内容需要同步"
+          fi
