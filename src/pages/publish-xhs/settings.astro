@@ -1,0 +1,45 @@
+---
+import PublishLayout from '../../layouts/PublishLayout.astro';
+---
+<PublishLayout title="账号设置">
+  <div class="page-head">
+    <h1>账号设置</h1>
+    <p class="page-sub">发布账号、作者信息与默认发布参数。</p>
+  </div>
+
+  <div class="settings-grid">
+    <section class="setting-card">
+      <h2>作者信息</h2>
+      <div class="row"><span class="k">显示名称</span><span class="v">FutureAI-Zeng</span></div>
+      <div class="row"><span class="k">头像首字</span><span class="v">F</span></div>
+      <div class="row"><span class="k">默认作者署名</span><span class="v">FutureAI-Zeng</span></div>
+    </section>
+
+    <section class="setting-card">
+      <h2>发布偏好</h2>
+      <div class="row"><span class="k">长文/笔记阈值</span><span class="v">1000 字</span></div>
+      <div class="row"><span class="k">默认话题上限</span><span class="v">10 个</span></div>
+      <div class="row"><span class="k">标题���度上限</span><span class="v">20 字</span></div>
+    </section>
+
+    <section class="setting-card">
+      <h2>小红书账号</h2>
+      <div class="row"><span class="k">登录方式</span><span class="v">本机扫码（cookie 本地保存）</span></div>
+      <div class="row"><span class="k">自动发布</span><span class="v">关闭（推荐手动复制）</span></div>
+      <p class="hint">为规避账号风控，当前默认关闭自动发布，仅保留手动复制发布。</p>
+    </section>
+  </div>
+</PublishLayout>
+
+<style>
+  .page-head h1 { margin: 0 0 .4rem; font-size: 1.6rem; }
+  .page-sub { color: var(--text-soft); margin: 0 0 1.4rem; }
+  .settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+  .setting-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem; }
+  .setting-card h2 { margin: 0 0 .8rem; font-size: 1rem; }
+  .row { display: flex; justify-content: space-between; gap: 1rem; padding: .45rem 0; border-bottom: 1px solid var(--border); font-size: .9rem; }
+  .row:last-child { border-bottom: none; }
+  .k { color: var(--text-soft); }
+  .v { color: var(--text); text-align: right; }
+  .hint { color: var(--text-soft); font-size: .8rem; margin: .6rem 0 0; }
+</style>

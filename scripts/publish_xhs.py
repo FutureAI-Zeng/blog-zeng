@@ -64,6 +64,12 @@ def clean_md(body):
     body = re.sub(r"\[([^\]]+)\]\((https?://[^)]+)\)", r"\1", body)
     # 去掉引用块符号
     body = re.sub(r"(?m)^>\s?", "", body)
+    # 粗体/斜体/行内代码：去掉 markdown 标记，只留文字
+    body = re.sub(r"\*\*([^*]+)\*\*", r"\1", body)
+    body = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"\1", body)
+    body = re.sub(r"(?<!`)`([^`\n]+)`(?!`)", r"\1", body)
+    # 反斜杠转义（如 mysqld\_safe）还原为普通字符
+    body = re.sub(r"\\([\\`*_{}\[\]()#+\-.!])", r"\1", body)
     return body
 
 
@@ -189,6 +195,10 @@ def load_font(size):
     candidates = [
         "/System/Library/Fonts/PingFang.ttc",
         "/System/Library/Fonts/STHeiti Light.ttc",
+        "/System/Library/Fonts/STHeiti Medium.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
         "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
     ]
     for c in candidates:

@@ -1,0 +1,54 @@
+---
+import PublishLayout from '../../layouts/PublishLayout.astro';
+import { publishItems } from '../../data/publish';
+const covers = [...new Set(publishItems.map((i) => i.cover))];
+const images = [...new Set(publishItems.flatMap((i) => i.images))];
+---
+<PublishLayout title="素材库">
+  <div class="page-head">
+    <h1>素材库</h1>
+    <p class="page-sub">集中查看已生成的封面与配图素材，方便复用。</p>
+  </div>
+
+  <section class="asset-group">
+    <h2>封面 <span>{covers.length}</span></h2>
+    {covers.length === 0 ? <p class="empty">暂无封面。</p> : (
+      <div class="asset-grid cover-grid">
+        {covers.map((c) => (
+          <a class="asset-card" href={c} target="_blank" rel="noopener">
+            <img src={c} loading="lazy" alt="" />
+            <div class="asset-name">{c.split('/').pop()}</div>
+          </a>
+        ))}
+      </div>
+    )}
+  </section>
+
+  <section class="asset-group">
+    <h2>配图 <span>{images.length}</span></h2>
+    {images.length === 0 ? <p class="empty">暂无配图。</p> : (
+      <div class="asset-grid img-grid">
+        {images.map((c) => (
+          <a class="asset-card" href={c} target="_blank" rel="noopener">
+            <img src={c} loading="lazy" alt="" />
+            <div class="asset-name">{c.split('/').pop()}</div>
+          </a>
+        ))}
+      </div>
+    )}
+  </section>
+</PublishLayout>
+
+<style>
+  .page-head h1 { margin: 0 0 .4rem; font-size: 1.6rem; }
+  .page-sub { color: var(--text-soft); margin: 0 0 1.4rem; }
+  .asset-group { margin-bottom: 1.6rem; }
+  .asset-group h2 { font-size: 1.05rem; display: flex; align-items: baseline; gap: .5rem; }
+  .asset-group h2 span { font-size: .8rem; color: var(--text-soft); }
+  .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .9rem; }
+  .cover-grid .asset-card { aspect-ratio: 3/4; }
+  .asset-card { position: relative; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--card); }
+  .asset-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .asset-name { position: absolute; left: 0; right: 0; bottom: 0; padding: .2rem .5rem; background: rgba(0,0,0,.45); color: #fff; font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .empty { color: var(--text-soft); }
+</style>

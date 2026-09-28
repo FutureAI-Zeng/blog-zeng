@@ -1,0 +1,74 @@
+---
+import PublishLayout from '../../layouts/PublishLayout.astro';
+import { activityItems, ACTIVITY_META } from '../../data/activity';
+import { SOURCE_META } from '../../data/publish';
+import type { ActivityType, ActivityRecord } from '../../data/activity';
+import type { SourceType } from '../../data/publish';
+
+const items = [...activityItems].sort((a, b) => (a.time < b.time ? 1 : -1));
+const metaOf = (t: string) => ACTIVITY_META[t as ActivityType] ?? { label: t, color: '#8b949e', icon: '·' };
+const sourceLabel = (s: string) => SOURCE_META[s as SourceType]?.label ?? s;
+const fmtTime = (t: string) => t.replace('T', ' ').replace('Z', '').slice(0, 16);
+---
+<PublishLayout title="同步记录">
+  <div class="activity-head">
+    <div>
+      <h1>同步记录</h1>
+      <p class="activity-sub">记录每次生成、状态变更、手动整理与复制操作，便于回溯发布过程。</p>
+    </div>
+    <div class="activity-total">共 <b>{items.length}</b> 条</div>
+  </div>
+
+  {items.length === 0 ? (
+    <div class="empty">
+      <p>暂无记录。</p>
+      <p class="hint">运行 <code>python3 scripts/prepare_cnblogs.py --latest 5</code> 或「手动整理」操作后，这里会显示记录。</p>
+    </div>
+  ) : (
+    <ul class="activity-list">
+      {items.map((it) => {
+        const meta = metaOf(it.type);
+        return (
+          <li class="activity-item">
+            <span class="act-dot" style={`background:${meta.color}`}></span>
+            <div class="act-body">
+              <div class="act-line">
+                <span class="act-type" style={`color:${meta.color}`}>{meta.icon} {meta.label}</span>
+                <span class="act-title">{it.title ?? it.pid ?? '—'}</span>
+              </div>
+              <div class="act-meta">
+                <span>{fmtTime(it.time)}</span>
+                <span class="act-source">{sourceLabel(it.source_type)}</span>
+                {it.pid && <span class="act-pid">ID {it.pid}</span>}
+                {it.detail && <span class="act-detail">{it.detail}</span>}
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+</PublishLayout>
+
+<style>
+  .activity-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .activity-head h1 { margin: 0 0 .4rem; font-size: 1.6rem; }
+  .activity-sub { color: var(--text-soft); margin: 0; max-width: 560px; }
+  .activity-total { color: var(--text-soft); font-size: .9rem; }
+  .activity-total b { color: var(--accent); }
+  .empty { color: var(--text-soft); padding: 2rem 0; }
+  .empty .hint { font-size: .85rem; }
+  .empty code { background: var(--code-bg); padding: 1px 6px; border-radius: 5px; }
+  .activity-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+  .activity-item { position: relative; display: flex; gap: .8rem; padding: .8rem 0; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .act-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 7px; flex: none; }
+  .act-body { min-width: 0; }
+  .act-line { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+  .act-type { font-weight: 700; font-size: .92rem; }
+  .act-title { color: var(--text); font-weight: 500; }
+  .act-meta { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .8rem; color: var(--text-soft); margin-top: .2rem; }
+  .act-source { color: var(--accent); }
+  .act-pid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .act-detail { color: var(--text-soft); }
+</style>

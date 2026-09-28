@@ -1,0 +1,177 @@
+---
+import { SITE } from '../consts';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const pageTitle = title ? `${title} · 小红书发布台` : '小红书发布台';
+
+const menus = [
+  { href: `${base}publish-xhs/`, label: '发布看板', icon: '📋' },
+  { href: `${base}publish-xhs/tool/`, label: '手动整理', icon: '✍️' },
+  { href: `${base}publish-xhs/activity/`, label: '同步记录', icon: '🔄' },
+  { href: `${base}publish-xhs/assets/`, label: '素材库', icon: '🖼️' },
+  { href: `${base}publish-xhs/settings/`, label: '账号设置', icon: '⚙️' },
+];
+---
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description ?? '小红书发布台：文章转小红书笔记/长文，手动复制发布'} />
+    <title>{pageTitle}</title>
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else if (t === 'sepia') {
+            document.documentElement.classList.add('sepia');
+          } else if (t === 'forest') {
+            document.documentElement.classList.add('forest');
+          } else if (t === 'sunset') {
+            document.documentElement.classList.add('sunset');
+          } else if (!t && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="publish-app">
+    <div class="publish-shell">
+      <aside class="publish-sidebar" id="publish-sidebar">
+        <div class="publish-brand">
+          <span class="brand-mark">红</span>
+          <div class="brand-text">
+            <div class="brand-name">小红书发布台</div>
+            <div class="brand-sub">内容整理 · 手动发布</div>
+          </div>
+        </div>
+        <nav class="publish-nav">
+          {menus.map((m) => {
+            const pathname = Astro.url.pathname.replace(/\/$/, '');
+            const isActive = m.href !== '#' && (pathname === m.href || pathname.startsWith(m.href));
+            return m.soon ? (
+              <span class="nav-item soon" title="功能规划中">
+                <span class="nav-icon">{m.icon}</span>
+                <span>{m.label}</span>
+                <span class="nav-badge">规划中</span>
+              </span>
+            ) : (
+              <a class={'nav-item' + (isActive ? ' active' : '')} href={m.href}>
+                <span class="nav-icon">{m.icon}</span>
+                <span>{m.label}</span>
+              </a>
+            );
+          })}
+        </nav>
+        <div class="publish-side-foot">
+          <a href={base} class="back-blog">← 返回博客</a>
+        </div>
+      </aside>
+
+      <main class="publish-main" id="publish-main">
+        <header class="publish-topbar">
+          <div class="topbar-title" id="topbar-title">小红书发布台</div>
+          <div class="topbar-right">
+            <span class="topbar-hint">仅本人可见 · 复制后到 App 手动发布</span>
+          </div>
+        </header>
+        <div class="publish-content" id="publish-content">
+          <slot />
+        </div>
+      </main>
+    </div>
+
+    <style is:global>
+      .publish-app {
+        background: var(--bg-soft);
+      }
+      .publish-shell {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        min-height: 100vh;
+      }
+      .publish-sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--card);
+        border-right: 1px solid var(--border);
+        padding: 1.2rem 1rem;
+        gap: 1.5rem;
+        overflow-y: auto;
+      }
+      .publish-brand {
+        display: flex;
+        align-items: center;
+        gap: .7rem;
+      }
+      .brand-mark {
+        width: 42px; height: 42px;
+        display: inline-flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, #ff2442, #ff6f61);
+        color: #fff; font-weight: 800; border-radius: 12px; flex: none;
+      }
+      .brand-name { font-weight: 700; font-size: 1rem; color: var(--text); }
+      .brand-sub { font-size: .72rem; color: var(--text-soft); }
+      .publish-nav { display: flex; flex-direction: column; gap: .35rem; }
+      .nav-item {
+        display: flex; align-items: center; gap: .6rem;
+        padding: .55rem .7rem; border-radius: 10px;
+        color: var(--text-soft); font-size: .92rem; text-decoration: none;
+      }
+      .nav-item:hover { background: var(--bg-soft); color: var(--text); }
+      .nav-item.active { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); font-weight: 600; }
+      .nav-item.soon { cursor: not-allowed; opacity: .65; }
+      .nav-icon { width: 20px; text-align: center; }
+      .nav-badge {
+        margin-left: auto; font-size: .68rem; color: var(--text-soft);
+        border: 1px solid var(--border); border-radius: 999px; padding: 0 .45rem;
+      }
+      .publish-side-foot { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
+      .back-blog { font-size: .85rem; color: var(--text-soft); }
+      .back-blog:hover { color: var(--accent); }
+
+      .publish-main { min-width: 0; display: flex; flex-direction: column; }
+      .publish-topbar {
+        position: sticky; top: 0; z-index: 20;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: .8rem 1.4rem;
+        background: color-mix(in srgb, var(--bg) 85%, transparent);
+        backdrop-filter: saturate(180%) blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .topbar-title { font-weight: 700; color: var(--text); }
+      .topbar-hint { font-size: .78rem; color: var(--text-soft); }
+      .publish-content { padding: 1.5rem 1.4rem 3rem; min-width: 0; }
+
+      @media (max-width: 760px) {
+        .publish-shell { grid-template-columns: 1fr; }
+        .publish-sidebar {
+          position: sticky; top: 0; z-index: 30;
+          height: auto; flex-direction: row; align-items: center;
+          border-right: none; border-bottom: 1px solid var(--border);
+          padding: .7rem .9rem; gap: .8rem; overflow-x: auto;
+        }
+        .publish-brand .brand-text { display: none; }
+        .publish-nav { flex-direction: row; gap: .2rem; }
+        .nav-item { padding: .4rem .6rem; font-size: .85rem; white-space: nowrap; }
+        .nav-badge { display: none; }
+        .publish-side-foot { display: none; }
+        .publish-topbar { padding: .6rem 1rem; }
+        .topbar-hint { display: none; }
+        .publish-content { padding: 1rem .9rem 2rem; }
+      }
+    </style>
+  </body>
+</html>

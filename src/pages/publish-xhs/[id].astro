@@ -1,0 +1,249 @@
+---
+import PublishLayout from '../../layouts/PublishLayout.astro';
+import { publishItems, SOURCE_META, STATUS_META } from '../../data/publish';
+import type { PublishStatus, SourceType } from '../../data/publish';
+
+export function getStaticPaths() {
+  return publishItems.map((item) => ({ params: { id: item.id }, props: { item } }));
+}
+
+const { item } = Astro.props as { item: (typeof publishItems)[number] };
+const base = import.meta.env.BASE_URL;
+const kindLabel = item.kind === 'article' ? '长文' : '图文笔记';
+const topicsText = item.topics.map((t) => '#' + t).join(' ');
+const sourceName = SOURCE_META[item.source_type as SourceType]?.label ?? item.source_type;
+const sourceColor = SOURCE_META[item.source_type as SourceType]?.color ?? '#8b949e';
+const statusName = STATUS_META[item.status as PublishStatus]?.label ?? item.status;
+const statusColor = STATUS_META[item.status as PublishStatus]?.color ?? '#8b949e';
+const steps = item.kind === 'article'
+  ? ['打开小红书 App → 底部「+」→ 选择「写文章/发布长文」', '输入标题 → 粘贴正文 → 添加话题', '上传封面图', '检查后点击「发布」']
+  : ['打开小红书 App → 底部「+」→ 选择「发布笔记」', '上传封面图，再上传配图', '粘贴标题 → 正文 → 话题', '检查后点击「发布」'];
+---
+<PublishLayout title={item.title}>
+  <div class="view-switch" id="view-switch">
+    <button class="view-btn active" data-view="edit" type="button">编辑视图</button>
+    <button class="view-btn" data-view="preview" type="button">手机预览</button>
+  </div>
+
+  <!-- 编辑��图：复制发布 -->
+  <article class="publish-detail" data-panel="edit">
+    <nav class="crumb"><a href={`${base}publish-xhs/`}>← 返回看板</a></nav>
+
+    <div class="detail-layout">
+      <aside class="cover-panel">
+        <img src={item.cover} alt={item.title} />
+        <a class="src-link" href={item.source} target="_blank" rel="noopener">原文链接 ↗</a>
+        <div class="badge-row">
+          <span class="source-badge" style={`background:${sourceColor}`}>{sourceName}</span>
+          <span class="status-badge" style={`background:${statusColor}`}>{statusName}</span>
+        </div>
+      </aside>
+
+      <div class="content-panel">
+        <h1>{item.title}</h1>
+        <div class="meta-line">
+          <span class={`kind kind-${item.kind}`}>{kindLabel}</span>
+          <span>配图 {item.images.length} 张</span>
+          <span>正文约 {item.body.length} 字</span>
+        </div>
+
+        <section class="block">
+          <div class="block-head"><h2>标题</h2><button class="copy-btn" data-copy="title" type="button">复制标题</button></div>
+          <p class="copy-target" id="copy-title">{item.title}</p>
+        </section>
+
+        <section class="block">
+          <div class="block-head"><h2>正文</h2><button class="copy-btn" data-copy="body" type="button">复制正文</button></div>
+          <pre class="copy-target body-text" id="copy-body">{item.body}</pre>
+        </section>
+
+        <section class="block">
+          <div class="block-head"><h2>话题</h2><button class="copy-btn" data-copy="topics" type="button">复制话题</button></div>
+          <p class="copy-target topics" id="copy-topics">{topicsText}</p>
+        </section>
+
+        {item.images.length > 0 && (
+          <section class="block">
+            <div class="block-head"><h2>配图</h2></div>
+            <div class="img-grid">
+              {item.images.map((img) => (
+                <a href={img} target="_blank" rel="noopener"><img src={img} loading="lazy" /></a>
+              ))}
+            </div>
+            <p class="hint">配图为文章内插图（本地化后）。封面在左侧，长按保存即可。</p>
+          </section>
+        )}
+
+        <section class="block">
+          <div class="block-head"><h2>发布步骤</h2></div>
+          <ol class="steps">
+            {steps.map((s) => <li>{s}</li>)}
+          </ol>
+        </section>
+      </div>
+    </div>
+  </article>
+
+  <!-- 手机预览：模拟小红书 App 图文/长文效果 -->
+  <article class="publish-preview" data-panel="preview" hidden>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="phone-bar">
+          <button class="back-btn" id="preview-back" type="button">‹ 返回编辑</button>
+        </div>
+        <div class="note-head">
+          <span class="avatar">F</span>
+          <div class="note-author">
+            <div class="author-name">FutureAI-Zeng</div>
+            <div class="author-time">刚刚 · 来自 小红书</div>
+          </div>
+          <span class={`kind kind-${item.kind}`}>{kindLabel}</span>
+        </div>
+        <img class="note-cover" src={item.cover} alt={item.title} />
+        <div class="note-title">{item.title}</div>
+        <div class={'note-body' + (item.kind === 'article' ? ' clamp' : '')} id="note-body">{item.body}</div>
+        {item.kind === 'article' && <button class="note-more" id="note-more" type="button">展开全文</button>}
+        <div class="note-topics">{topicsText}</div>
+        {item.images.length > 0 && (
+          <div class="note-imgs">
+            {item.images.map((img) => <img src={img} loading="lazy" />)}
+          </div>
+        )}
+        <div class="note-actions">
+          <span>♥</span><span>☆</span><span>↗</span>
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint">以上为手机端模拟效果，实际以小红书 App 为准。</p>
+  </article>
+</PublishLayout>
+
+<style>
+  .view-switch { display: flex; gap: .5rem; margin-bottom: 1rem; }
+  .view-btn { border: 1px solid var(--border); background: var(--card); color: var(--text-soft); border-radius: 999px; padding: .4rem 1.1rem; cursor: pointer; font-size: .9rem; }
+  .view-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .publish-detail { max-width: 1080px; }
+  .crumb { margin-bottom: 1rem; }
+  .detail-layout { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 760px) { .detail-layout { grid-template-columns: 1fr; } }
+  .cover-panel { position: sticky; top: 70px; }
+  .cover-panel img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
+  .src-link { display: inline-block; margin-top: .6rem; }
+  .badge-row { margin-top: .5rem; display: flex; gap: .4rem; flex-wrap: wrap; }
+  .source-badge, .status-badge { color: #fff; font-size: .8rem; padding: .15rem .6rem; border-radius: 999px; width: fit-content; }
+  .content-panel h1 { font-size: 1.5rem; margin: 0 0 .5rem; line-height: 1.4; }
+  .meta-line { display: flex; gap: .7rem; align-items: center; color: var(--text-soft); font-size: .9rem; margin-bottom: 1.2rem; }
+  .kind { padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; }
+  .kind-article { background: #eef2ff; color: #4338ca; }
+  .kind-note { background: #ecfdf5; color: #047857; }
+  html.dark .kind-article { background: #1e293b; color: #a5b4fc; }
+  html.dark .kind-note { background: #052e2b; color: #6ee7b7; }
+  .block { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; margin-bottom: 1rem; }
+  .block-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+  .block-head h2 { margin: 0; font-size: 1rem; }
+  .copy-btn { border: 1px solid var(--accent); background: transparent; color: var(--accent); border-radius: 8px; padding: .25rem .7rem; cursor: pointer; font-size: .85rem; }
+  .copy-btn:hover { background: var(--accent); color: #fff; }
+  .copy-target { margin: 0; }
+  .body-text { white-space: pre-wrap; word-break: break-word; font-family: inherit; background: var(--code-bg); border-radius: 10px; padding: .8rem; line-height: 1.7; }
+  .topics { color: var(--accent); line-height: 1.7; }
+  .img-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .5rem; }
+  .img-grid img { width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+  .hint { color: var(--text-soft); font-size: .85rem; }
+  .steps { margin: 0; padding-left: 1.3rem; }
+  .steps li { margin: .3rem 0; }
+
+  /* 手机预览 */
+  .publish-preview { max-width: 1080px; }
+  .phone-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem; }
+  .back-btn { border: none; background: transparent; color: #999; border-radius: 999px; padding: .15rem .5rem; cursor: pointer; font-size: .82rem; }
+  .phone { width: 390px; max-width: 100%; margin: 0 auto; background: #111; border-radius: 40px; padding: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+  .phone-notch { width: 120px; height: 20px; background: #111; margin: 0 auto 8px; border-radius: 0 0 18px 18px; }
+  .phone-screen { background: #fff; color: #222; border-radius: 28px; overflow: hidden; padding: 12px 14px 16px; }
+  html.dark .phone-screen { background: #1a1a1a; color: #e6e6e6; }
+  .note-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .7rem; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #ff2442; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex: none; }
+  .note-author { flex: 1; min-width: 0; }
+  .author-name { font-size: .85rem; font-weight: 700; }
+  .author-time { font-size: .72rem; color: #999; }
+  .note-cover { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 10px; margin-bottom: .7rem; }
+  .note-title { font-size: 1.05rem; font-weight: 700; line-height: 1.45; margin-bottom: .5rem; }
+  .note-body { white-space: pre-wrap; word-break: break-word; font-size: .92rem; line-height: 1.7; color: #333; }
+  html.dark .note-body { color: #cfcfcf; }
+  .note-body.clamp { display: -webkit-box; -webkit-line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden; }
+  .note-more { display: block; margin: .5rem 0 0; background: none; border: none; color: #00a6ff; font-size: .85rem; padding: 0; cursor: pointer; }
+  .note-topics { margin-top: .7rem; font-size: .82rem; color: #00a6ff; line-height: 1.8; }
+  .note-imgs { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .6rem; }
+  .note-imgs img { width: 82px; height: 82px; object-fit: cover; border-radius: 8px; }
+  .note-actions { display: flex; gap: 1.4rem; margin-top: .9rem; padding-top: .6rem; border-top: 1px solid rgba(0,0,0,.06); color: #999; font-size: 1.05rem; }
+  .preview-hint { text-align: center; color: var(--text-soft); font-size: .82rem; margin-top: 1rem; }
+</style>
+
+<script is:inline>
+  (function () {
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+      }
+      return new Promise(function (resolve, reject) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); resolve(); } catch (e) { reject(e); }
+        document.body.removeChild(ta);
+      });
+    }
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-copy');
+        var el = document.getElementById('copy-' + key);
+        if (!el) return;
+        copyText(el.innerText).then(function () {
+          var old = btn.textContent;
+          btn.textContent = '已复制 ✓';
+          setTimeout(function () { btn.textContent = old; }, 1500);
+        });
+      });
+    });
+
+    var btns = document.querySelectorAll('.view-btn');
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var view = btn.getAttribute('data-view');
+        btns.forEach(function (b) { b.classList.toggle('active', b === btn); });
+        document.querySelectorAll('[data-panel]').forEach(function (p) {
+          p.hidden = p.getAttribute('data-panel') !== view;
+        });
+        var immersive = view === 'preview';
+        var shell = document.querySelector('.publish-sidebar');
+        var topbar = document.querySelector('.publish-topbar');
+        var content = document.querySelector('.publish-content');
+        if (shell) shell.style.display = immersive ? 'none' : '';
+        if (topbar) topbar.style.display = immersive ? 'none' : '';
+        if (content) content.style.padding = immersive ? '0' : '';
+        document.querySelector('#view-switch').style.display = immersive ? 'none' : '';
+        window.scrollTo(0, 0);
+      });
+    });
+
+    var back = document.getElementById('preview-back');
+    if (back) {
+      back.addEventListener('click', function () {
+        document.querySelector('button[data-view="edit"]').click();
+      });
+    }
+
+    var more = document.getElementById('note-more');
+    if (more) {
+      more.addEventListener('click', function () {
+        var body = document.getElementById('note-body');
+        var expanded = body.classList.toggle('clamp') === false;
+        more.textContent = expanded ? '收起' : '展开全文';
+      });
+    }
+  })();
+</script>

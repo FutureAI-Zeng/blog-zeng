@@ -1,0 +1,61 @@
+name: Prepare XHS publish board
+
+# 手动触发：在 GitHub 仓库 → Actions → "Prepare XHS publish board" → Run workflow
+# 可选输入：
+#   source  — 单个 cnblogs URL 或文章 pid（留空则用 latest 批量生成最新几篇）
+#   latest  — 取 sitemap 最新 N 篇（默认 5，source 有值时忽略）
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: '单个 cnblogs URL 或文章 pid（留空则用 latest）'
+        required: false
+        default: ''
+      latest:
+        description: '取 sitemap 最新 N 篇批量生成（默认 5）'
+        required: false
+        default: '5'
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python deps
+        run: pip install markdownify beautifulsoup4 lxml pyyaml pillow
+
+      - name: Install CJK font for cover generation
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
+
+      - name: Prepare publish data
+        run: |
+          if [ -n "${{ github.event.inputs.source }}" ]; then
+            python scripts/prepare_cnblogs.py "${{ github.event.inputs.source }}"
+          else
+            python scripts/prepare_cnblogs.py --latest "${{ github.event.inputs.latest }}"
+          fi
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore: 更新小红书发布看板"
+            git push
+            echo "看板数据已更新，将触发部署"
+          else
+            echo "看板数据没有变化"
+          fi

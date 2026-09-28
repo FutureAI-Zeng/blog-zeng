@@ -1,0 +1,243 @@
+---
+import PublishLayout from '../../layouts/PublishLayout.astro';
+---
+<PublishLayout title="手动整理工具">
+  <div class="tool-head">
+    <div>
+      <h1>手动整理工具</h1>
+      <p class="tool-sub">粘贴 Markdown 或纯文本，自动整理成小红书可发布的内容（标题 / 正文 / 话题），并支持复制。</p>
+    </div>
+  </div>
+
+  <div class="tool-grid">
+    <section class="panel input-panel">
+      <div class="panel-head"><h2>输入</h2><span class="hint">支持 .md 文档内容或任意文本</span></div>
+      <div class="field">
+        <label>标题（可选，留空自动截取）</label>
+        <input id="in-title" type="text" maxlength="60" placeholder="例如：Kafka 三节点集群丢消息排查" />
+      </div>
+      <div class="field">
+        <label>标签 / 关键词（可选，逗号分隔）</label>
+        <input id="in-tags" type="text" placeholder="例如：kafka, 运维, 故障排查" />
+      </div>
+      <div class="field">
+        <label>正文内容</label>
+        <textarea id="in-body" rows="14" placeholder="粘贴 Markdown 或纯文本内容…"></textarea>
+      </div>
+      <div class="field file-field">
+        <label>或上传 Markdown 文件</label>
+        <div class="file-row">
+          <label class="file-pick" for="in-file">选择 .md 文件</label>
+          <input id="in-file" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden />
+          <span id="file-name" class="file-name">未选择文件</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btn-run" class="primary" type="button">生成整理结果</button>
+        <button id="btn-clear" type="button">清空</button>
+      </div>
+    </section>
+
+    <section class="panel result-panel">
+      <div class="panel-head"><h2>整理结果</h2><span id="out-kind" class="kind kind-note">笔记</span></div>
+
+      <div class="result-block">
+        <div class="result-label">标题 <button class="copy-btn" data-copy="out-title" type="button">复制</button></div>
+        <p class="result-title" id="out-title">—</p>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">正文 <button class="copy-btn" data-copy="out-body" type="button">复制</button></div>
+        <pre class="result-body" id="out-body">请先输入内容并点击「生成整理结果」。</pre>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">话题 <button class="copy-btn" data-copy="out-topics" type="button">复制</button></div>
+        <p class="result-topics" id="out-topics">—</p>
+      </div>
+
+      <div class="result-meta">
+        <span>正文 <b id="out-chars">0</b> 字</span>
+        <span>类型 <b id="out-kind-label">—</b></span>
+      </div>
+    </section>
+  </div>
+</PublishLayout>
+
+<style>
+  .tool-head h1 { margin: 0 0 .4rem; font-size: 1.6rem; }
+  .tool-sub { color: var(--text-soft); margin: 0; max-width: 620px; }
+  .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: 1.4rem; align-items: start; }
+  @media (max-width: 860px) { .tool-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .9rem; }
+  .panel-head h2 { margin: 0; font-size: 1.05rem; }
+  .hint { font-size: .78rem; color: var(--text-soft); }
+  .field { margin-bottom: .8rem; }
+  .field label { display: block; font-size: .85rem; color: var(--text-soft); margin-bottom: .35rem; }
+  .field input, .field textarea {
+    width: 100%; padding: .6rem .7rem; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg-soft); color: var(--text);
+    font-size: .92rem; font-family: inherit; outline: none; resize: vertical;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--accent); }
+  .file-field { margin-top: .1rem; }
+  .file-row { display: flex; align-items: center; gap: .7rem; }
+  .file-pick { border: 1px solid var(--accent); color: var(--accent); border-radius: 10px; padding: .45rem .9rem; cursor: pointer; font-size: .85rem; }
+  .file-pick:hover { background: var(--accent); color: #fff; }
+  .file-name { font-size: .82rem; color: var(--text-soft); }
+  .actions { display: flex; gap: .6rem; }
+  .actions button { border-radius: 10px; padding: .55rem 1.1rem; cursor: pointer; font-size: .9rem; border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); }
+  .actions .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .result-block { border-bottom: 1px solid var(--border); padding: .8rem 0; }
+  .result-label { display: flex; align-items: center; justify-content: space-between; font-size: .82rem; color: var(--text-soft); margin-bottom: .4rem; }
+  .result-title { margin: 0; font-size: 1.05rem; font-weight: 700; line-height: 1.45; }
+  .result-body { white-space: pre-wrap; word-break: break-word; margin: 0; background: var(--bg-soft); border-radius: 10px; padding: .7rem; font-size: .9rem; line-height: 1.7; max-height: 420px; overflow-y: auto; }
+  .result-topics { margin: 0; color: var(--accent); line-height: 1.8; }
+  .result-meta { display: flex; gap: 1.2rem; padding-top: .8rem; color: var(--text-soft); font-size: .85rem; }
+  .result-meta b { color: var(--text); }
+  .copy-btn { border: 1px solid var(--accent); background: transparent; color: var(--accent); border-radius: 8px; padding: .15rem .6rem; cursor: pointer; font-size: .8rem; }
+  .copy-btn:hover { background: var(--accent); color: #fff; }
+  .kind { padding: .1rem .5rem; border-radius: 999px; font-size: .76rem; }
+  .kind-note { background: #ecfdf5; color: #047857; }
+  .kind-article { background: #eef2ff; color: #4338ca; }
+  html.dark .kind-note { background: #052e2b; color: #6ee7b7; }
+  html.dark .kind-article { background: #1e293b; color: #a5b4fc; }
+</style>
+
+<script is:inline>
+  (function () {
+    var NOTE_MAX = 1000;
+    var TOPIC_POOL = ['程序员', '技术笔记', '避坑', '运维', '故障排查'];
+
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+      }
+      return new Promise(function (resolve, reject) {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); resolve(); } catch (e) { reject(e); }
+        document.body.removeChild(ta);
+      });
+    }
+
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-copy');
+        var el = document.getElementById(key);
+        if (!el) return;
+        copyText(el.innerText).then(function () {
+          var old = btn.textContent;
+          btn.textContent = '已复制 ✓';
+          setTimeout(function () { btn.textContent = old; }, 1200);
+        });
+      });
+    });
+
+    function clean(body) {
+      var s = body || '';
+      s = s.replace(/!\[[^\]]*\]\(([^)]+)\)/g, '[配图]');
+      s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1');
+      s = s.replace(/^\s*>\s?/gm, '');
+      s = s.replace(/\*\*([^*]+)\*\*/g, '$1');
+      s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1$2');
+      s = s.replace(/(?<!`)`([^`\n]+)`(?!`)/g, '$1');
+      s = s.replace(/\\([\\`*_{}\[\]()#+\-.!])/g, '$1');
+      return s;
+    }
+
+    function adapt(body) {
+      var lines = clean(body).split(/\r?\n/);
+      var out = [];
+      var inCode = false;
+      lines.forEach(function (raw) {
+        var ln = raw.replace(/\s+$/, '');
+        if (!ln.trim()) return;
+        var t = ln.trim();
+        if (t.indexOf('```') === 0) {
+          if (inCode) { out.push('▌代码结束'); inCode = false; }
+          else { out.push('▌代码：'); inCode = true; }
+          return;
+        }
+        if (inCode) { out.push('    ' + ln); return; }
+        if (t.indexOf('#') === 0) {
+          var txt = t.replace(/^#+\s*/, '').trim();
+          if (txt) out.push('📌 ' + txt);
+        } else {
+          out.push(ln);
+        }
+      });
+      if (inCode) out.push('▌代码结束');
+      return out.join('\n');
+    }
+
+    function makeTitle(orig) {
+      var t = (orig || '').replace(/\s+/g, ' ').trim();
+      if (!t) return '小红书分享';
+      return t.length > 20 ? t.slice(0, 19) + '…' : t;
+    }
+
+    function makeTopics(tags, body) {
+      var pool = (tags || []).concat(TOPIC_POOL);
+      var seen = [];
+      pool.forEach(function (t) {
+        t = (t || '').trim();
+        if (t && seen.indexOf(t) < 0 && seen.length < 10) seen.push(t);
+      });
+      return seen;
+    }
+
+    function run() {
+      var rawBody = document.getElementById('in-body').value;
+      var titleInput = document.getElementById('in-title').value.trim();
+      var tags = document.getElementById('in-tags').value.split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
+
+      var body = adapt(rawBody);
+      var title = makeTitle(titleInput || (rawBody.replace(/^#+\s*/gm, '').split(/\r?\n/).filter(function (l) { return l.trim(); })[0] || ''));
+      var topics = makeTopics(tags, body);
+      var kind = body.length > NOTE_MAX ? 'article' : 'note';
+
+      document.getElementById('out-title').innerText = title;
+      document.getElementById('out-body').innerText = body || '（内容为空）';
+      document.getElementById('out-topics').innerText = topics.map(function (t) { return '#' + t; }).join(' ');
+      document.getElementById('out-chars').innerText = body.length;
+      document.getElementById('out-kind-label').innerText = kind === 'article' ? '长文' : '笔记';
+
+      var kindEl = document.getElementById('out-kind');
+      kindEl.textContent = kind === 'article' ? '长文' : '笔记';
+      kindEl.className = 'kind ' + (kind === 'article' ? 'kind-article' : 'kind-note');
+    }
+
+    document.getElementById('btn-run').addEventListener('click', run);
+    document.getElementById('btn-clear').addEventListener('click', function () {
+      document.getElementById('in-title').value = '';
+      document.getElementById('in-tags').value = '';
+      document.getElementById('in-body').value = '';
+      document.getElementById('in-file').value = '';
+      document.getElementById('file-name').innerText = '未选择文件';
+      document.getElementById('out-title').innerText = '—';
+      document.getElementById('out-body').innerText = '请先输入内容并点击「生成整理结果」。';
+      document.getElementById('out-topics').innerText = '—';
+      document.getElementById('out-chars').innerText = '0';
+    });
+
+    var fileInput = document.getElementById('in-file');
+    fileInput.addEventListener('change', function () {
+      var f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      document.getElementById('file-name').innerText = f.name;
+      var reader = new FileReader();
+      reader.onload = function () {
+        document.getElementById('in-body').value = String(reader.result || '');
+        var titleEl = document.getElementById('in-title');
+        if (!titleEl.value.trim()) {
+          var first = String(reader.result || '').replace(/^#+\s*/gm, '').split(/\r?\n/).find(function (l) { return l.trim(); });
+          if (first) titleEl.value = first.trim();
+        }
+      };
+      reader.readAsText(f);
+    });
+  })();
+</script>

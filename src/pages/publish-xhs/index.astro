@@ -1,0 +1,137 @@
+---
+import PublishLayout from '../../layouts/PublishLayout.astro';
+import { publishItems, SOURCE_META, STATUS_META } from '../../data/publish';
+import type { PublishStatus, SourceType } from '../../data/publish';
+const base = import.meta.env.BASE_URL;
+const pending = publishItems.filter((i) => i.status === 'pending');
+const published = publishItems.filter((i) => i.status === 'published');
+const drafts = publishItems.filter((i) => i.status === 'draft');
+const archived = publishItems.filter((i) => i.status === 'archived');
+const kindLabel = (k: string) => (k === 'article' ? '长文' : '笔记');
+const sourceLabel = (s: string) => SOURCE_META[s as SourceType]?.label ?? s;
+const sourceColor = (s: string) => SOURCE_META[s as SourceType]?.color ?? '#8b949e';
+const sourceTypes = Array.from(new Set(publishItems.map((i) => i.source_type))) as SourceType[];
+const statusLabel = (s: string) => STATUS_META[s as PublishStatus]?.label ?? s;
+const statusColor = (s: string) => STATUS_META[s as PublishStatus]?.color ?? '#8b949e';
+---
+<PublishLayout title="发布看板">
+  <div class="board-head">
+    <div>
+      <h1>发布看板</h1>
+      <p class="board-sub">文章自动整理成「标题 / 正文 / 话题 / 封面」，手动复制到小红书 App 发布，规避账号风控。</p>
+    </div>
+    <div class="board-stats">
+      <div class="stat pending"><b>{pending.length}</b><span>待发布</span></div>
+      <div class="stat draft"><b>{drafts.length}</b><span>草稿</span></div>
+      <div class="stat published"><b>{published.length}</b><span>已发布</span></div>
+      <div class="stat total"><b>{publishItems.length}</b><span>总计</span></div>
+    </div>
+  </div>
+
+  <div class="filter-bar" id="filter-bar">
+    <span class="filter-label">状态</span>
+    <button class="filter-btn active" data-filter="all" type="button">全部</button>
+    <button class="filter-btn" data-filter="pending" type="button">待发布</button>
+    <button class="filter-btn" data-filter="draft" type="button">草稿</button>
+    <button class="filter-btn" data-filter="published" type="button">已发布</button>
+    <button class="filter-btn" data-filter="archived" type="button">已归档</button>
+  </div>
+
+  <div class="filter-bar" id="source-filter-bar">
+    <span class="filter-label">来源</span>
+    <button class="filter-btn active" data-source="all" type="button">全部</button>
+    {sourceTypes.map((st) => (
+      <button class="filter-btn" data-source={st} type="button">{sourceLabel(st)}</button>
+    ))}
+  </div>
+
+  {publishItems.length === 0 && <p class="empty">暂无发布项。先运行 `python3 scripts/prepare_cnblogs.py --latest 5` 生成。</p>}
+
+  <div class="board-grid">
+    {publishItems.map((item) => (
+      <a class="board-card" data-status={item.status} data-source={item.source_type} href={`${base}publish-xhs/${item.id}/`}>
+        <div class="card-cover">
+          <img src={item.cover} alt={item.title} loading="lazy" />
+          <span class="source-badge" style={`background:${sourceColor(item.source_type)}`}>{sourceLabel(item.source_type)}</span>
+          <span class="status-badge" style={`background:${statusColor(item.status)}`}>{statusLabel(item.status)}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">{item.title}</div>
+          <div class="card-meta">
+            <span class={`kind kind-${item.kind}`}>{kindLabel(item.kind)}</span>
+            <span>{item.images.length} 张配图</span>
+          </div>
+        </div>
+      </a>
+    ))}
+  </div>
+</PublishLayout>
+
+<style>
+  .board-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .board-head h1 { margin: 0 0 .4rem; font-size: 1.6rem; }
+  .board-sub { color: var(--text-soft); margin: 0; max-width: 560px; }
+  .board-stats { display: flex; gap: .8rem; flex-wrap: wrap; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: .55rem 1rem; text-align: center; min-width: 78px; }
+  .stat b { display: block; font-size: 1.3rem; }
+  .stat span { font-size: .76rem; color: var(--text-soft); }
+  .stat.pending b { color: #d97706; }
+  .stat.draft b { color: #8b949e; }
+  .stat.published b { color: #16a34a; }
+  .stat.total b { color: var(--accent); }
+
+  .filter-bar { display: flex; gap: .4rem; margin-bottom: .6rem; flex-wrap: wrap; align-items: center; }
+  .filter-label { font-size: .8rem; color: var(--text-soft); margin-right: .3rem; }
+  .filter-btn { border: 1px solid var(--border); background: var(--card); color: var(--text-soft); border-radius: 999px; padding: .3rem .9rem; cursor: pointer; font-size: .86rem; }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .board-card { display: block; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--card); box-shadow: var(--shadow); transition: transform .15s; }
+  .board-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .board-card.hidden { display: none; }
+  .card-cover { position: relative; aspect-ratio: 3/4; background: var(--code-bg); }
+  .card-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .source-badge { position: absolute; top: 8px; left: 8px; color: #fff; font-size: .7rem; padding: .1rem .5rem; border-radius: 999px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .status-badge { position: absolute; top: 8px; right: 8px; color: #fff; font-size: .7rem; padding: .1rem .5rem; border-radius: 999px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .card-body { padding: .75rem; }
+  .card-title { font-weight: 600; line-height: 1.4; margin-bottom: .5rem; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-meta { display: flex; gap: .5rem; align-items: center; font-size: .8rem; color: var(--text-soft); }
+  .kind { padding: .1rem .5rem; border-radius: 999px; font-size: .76rem; }
+  .kind-article { background: #eef2ff; color: #4338ca; }
+  .kind-note { background: #ecfdf5; color: #047857; }
+  html.dark .kind-article { background: #1e293b; color: #a5b4fc; }
+  html.dark .kind-note { background: #052e2b; color: #6ee7b7; }
+  .empty { color: var(--text-soft); padding: 2rem 0; }
+</style>
+
+<script is:inline>
+  (function () {
+    var cards = document.querySelectorAll('.board-card');
+    var status = 'all';
+    var source = 'all';
+
+    function apply() {
+      cards.forEach(function (c) {
+        var okStatus = status === 'all' || c.getAttribute('data-status') === status;
+        var okSource = source === 'all' || c.getAttribute('data-source') === source;
+        c.classList.toggle('hidden', !(okStatus && okSource));
+      });
+    }
+
+    document.querySelectorAll('#filter-bar .filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        status = btn.getAttribute('data-filter');
+        document.querySelectorAll('#filter-bar .filter-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
+        apply();
+      });
+    });
+
+    document.querySelectorAll('#source-filter-bar .filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        source = btn.getAttribute('data-source');
+        document.querySelectorAll('#source-filter-bar .filter-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
+        apply();
+      });
+    });
+  })();
+</script>
