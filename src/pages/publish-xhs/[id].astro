@@ -101,10 +101,24 @@ const steps = item.kind === 'article'
           <span class={`kind kind-${item.kind}`}>{kindLabel}</span>
         </div>
         <img class="note-cover" src={item.cover} alt={item.title} />
-        <div class="note-title">{item.title}</div>
-        <div class={'note-body' + (item.kind === 'article' ? ' clamp' : '')} id="note-body">{item.body}</div>
+        <div class="pv-head">
+          <span class="pv-label">标题</span>
+          <button class="copy-btn pv-copy" data-copy="title-preview" type="button">复制标题</button>
+        </div>
+        <div class="note-title" id="copy-title-preview">{item.title}</div>
+
+        <div class="pv-head">
+          <span class="pv-label">正文</span>
+          <button class="copy-btn pv-copy" data-copy="body-preview" type="button">复制正文</button>
+        </div>
+        <div class={'note-body' + (item.kind === 'article' ? ' clamp' : '')} id="copy-body-preview">{item.body}</div>
         {item.kind === 'article' && <button class="note-more" id="note-more" type="button">展开全文</button>}
-        <div class="note-topics">{topicsText}</div>
+
+        <div class="pv-head">
+          <span class="pv-label">话题</span>
+          <button class="copy-btn pv-copy" data-copy="topics-preview" type="button">复制话题</button>
+        </div>
+        <div class="note-topics" id="copy-topics-preview">{topicsText}</div>
         {item.images.length > 0 && (
           <div class="note-imgs">
             {item.images.map((img) => <img src={img} loading="lazy" />)}
@@ -120,6 +134,10 @@ const steps = item.kind === 'article'
 </PublishLayout>
 
 <style>
+  [data-panel] { position: relative; }
+  [data-panel][hidden] { display: none !important; }
+  .publish-preview { z-index: 2; }
+  .publish-detail { z-index: 1; }
   .view-switch { display: flex; gap: .5rem; margin-bottom: 1rem; }
   .view-btn { border: 1px solid var(--border); background: var(--card); color: var(--text-soft); border-radius: 999px; padding: .4rem 1.1rem; cursor: pointer; font-size: .9rem; }
   .view-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -177,6 +195,9 @@ const steps = item.kind === 'article'
   .note-imgs { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .6rem; }
   .note-imgs img { width: 82px; height: 82px; object-fit: cover; border-radius: 8px; }
   .note-actions { display: flex; gap: 1.4rem; margin-top: .9rem; padding-top: .6rem; border-top: 1px solid rgba(0,0,0,.06); color: #999; font-size: 1.05rem; }
+  .pv-head { display: flex; align-items: center; justify-content: space-between; margin: .8rem 0 .3rem; }
+  .pv-label { font-size: .78rem; font-weight: 600; color: #999; }
+  .pv-copy { font-size: .72rem; padding: .12rem .5rem; }
   .preview-hint { text-align: center; color: var(--text-soft); font-size: .82rem; margin-top: 1rem; }
 </style>
 
@@ -200,7 +221,7 @@ const steps = item.kind === 'article'
     document.querySelectorAll('.copy-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var key = btn.getAttribute('data-copy');
-        var el = document.getElementById('copy-' + key);
+        var el = document.getElementById('copy-' + key) || document.getElementById(key);
         if (!el) return;
         copyText(el.innerText).then(function () {
           var old = btn.textContent;
