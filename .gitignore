@@ -3,3 +3,8 @@ dist
 .astro
 .DS_Store
 scripts/.tagmap_cache.json
+xhs_drafts/
+xhs_drafts_trimmed/
+.xhs_cookies.json
+__pycache__/
+*.pyc
