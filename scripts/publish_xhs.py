@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 import yaml
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 POSTS = ROOT / "src/content/posts"
@@ -357,51 +357,99 @@ def classify_code_line(line):
     return "data"
 
 
+def _vgradient(w, h, top, bottom):
+    """垂直渐变背景（纯 PIL 逐行插值）。"""
+    img = Image.new("RGB", (w, h))
+    px = img.load()
+    for y in range(h):
+        t = y / max(1, h - 1)
+        r = int(top[0] + (bottom[0] - top[0]) * t)
+        g = int(top[1] + (bottom[1] - top[1]) * t)
+        b = int(top[2] + (bottom[2] - top[2]) * t)
+        for x in range(w):
+            px[x, y] = (r, g, b)
+    return img
+
+
+def _draw_pill(d, x, y, text, font, bg, fg, pad=18, height=58):
+    """画胶囊标签，返回下一个可用的 x 坐标。"""
+    tw = d.textlength(text, font=font)
+    w = int(tw + pad * 2)
+    d.rounded_rectangle([x, y, x + w, y + height], radius=height // 2, fill=bg)
+    ty = y + (height - font.size) // 2 - 2
+    d.text((x + pad, ty), text, font=font, fill=fg)
+    return x + w + 14
+
+
 def make_tech_cover(title, topics, out_path, body=None, subtitle=None):
-    """技术风封面：终端窗口 + 主题色 + 真实代码/日志片段，视觉更贴技术内容。"""
+    """技术风封面：深色渐变 + 主题光晕 + 大标题 + 真实代码卡片 + 胶囊标签。"""
     W, H = 1080, 1440
     theme_name = detect_tech_theme(title, topics, body or "")
     cfg = TECH_THEMES[theme_name]
     accent = cfg["accent"]
-    base = (18, 24, 38)
-    panel = (27, 34, 51)
-    img = Image.new("RGB", (W, H), base)
+    label = cfg["label"]
+
+    # 1) 深色渐变背景（主色偏蓝黑，右下部略透主题色）
+    base = _vgradient(W, H, (11, 16, 30), (30, 20, 48))
+
+    # 2) 主题色光晕：左上 + 右下两团柔光
+    glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    r, g, b = accent
+    gd.ellipse([-260, -160, 620, 720], fill=(r, g, b, 70))
+    gd.ellipse([520, 860, 1400, 1640], fill=(r, g, b, 58))
+    glow = glow.filter(ImageFilter.GaussianBlur(140))
+    img = Image.alpha_composite(base.convert("RGBA"), glow).convert("RGB")
     d = ImageDraw.Draw(img)
 
-    # 顶部装饰条
-    d.rectangle([0, 0, W, 16], fill=accent)
+    # 3) 顶部：主题标签胶囊 + 品牌小字
+    d.text((60, 56), "小红书 · 技术笔记", font=load_font(30), fill=(150, 160, 185))
+    _draw_pill(d, 60, 108, label, load_font(30), accent, (255, 255, 255), height=56)
 
-    # 终端窗口
-    win_x, win_y, win_w, win_h = 60, 210, W - 120, 900
-    d.rounded_rectangle([win_x, win_y, win_x + win_w, win_y + win_h], radius=18, fill=panel)
-    # 标题栏 + 三个圆点
-    d.rounded_rectangle([win_x, win_y, win_x + win_w, win_y + 70], radius=18, fill=(37, 46, 66))
-    d.rectangle([win_x, win_y + 40, win_x + win_w, win_y + 70], fill=(37, 46, 66))
-    for i, col in enumerate([(255, 95, 86), (255, 189, 46), (39, 201, 63)]):
-        cx = win_x + 42 + i * 40
-        d.ellipse([cx - 10, win_y + 35 - 10, cx + 10, win_y + 35 + 10], fill=col)
-    tf2 = load_font(34)
-    d.text((win_x + 170, win_y + 26), cfg["label"], font=tf2, fill=(150, 160, 180))
+    # 4) 大标题（白色 + accent 竖条强调，最多 3 行）
+    title_font = load_font(76)
+    title_lines = wrap_text(d, title, title_font, W - 160)[:3]
+    ty = 220
+    d.rectangle([60, ty + 8, 68, ty + 8 + 84], fill=accent)
+    for ln in title_lines:
+        d.text((100, ty), ln, font=title_font, fill=(245, 248, 252))
+        ty += 96
+    # 标题截断提示
+    if len(wrap_text(d, title, title_font, W - 160)) > 3:
+        d.text((100, ty - 96), "…", font=title_font, fill=(245, 248, 252))
 
-    # 终端内容：大标题 + 副标题 + 真实代码/日志
-    ty = win_y + 120
-    tfont = load_font(56)
-    for ln in wrap_text(d, title, tfont, win_w - 90)[:3]:
-        d.text((win_x + 45, ty), ln, font=tfont, fill=(235, 240, 248))
-        ty += 74
+    # 5) 副标题（浅灰，最多 2 行）
     if subtitle:
-        sf = load_font(32)
-        for ln in wrap_text(d, subtitle, sf, win_w - 90)[:2]:
-            d.text((win_x + 45, ty), ln, font=sf, fill=(150, 160, 180))
-            ty += 46
+        sf = load_font(38)
+        sub_lines = wrap_text(d, subtitle, sf, W - 160)[:2]
+        sy = ty + 20
+        for ln in sub_lines:
+            d.text((100, sy), ln, font=sf, fill=(172, 182, 204))
+            sy += 52
+        ty = sy
 
-    ty += 30
-    d.text((win_x + 45, ty), "$", font=load_font(40), fill=accent)
-    d.text((win_x + 90, ty), " ____", font=load_font(40), fill=(150, 160, 180))
-    ty += 62
+    # 6) 代码卡片：真实代码/命令/日志片段
+    card_x, card_y = 60, max(ty + 60, 700)
+    card_w = W - 120
+    card_h = H - card_y - 190
+    panel = (23, 30, 48)
+    d.rounded_rectangle([card_x, card_y, card_x + card_w, card_y + card_h], radius=24, fill=panel)
+    # 卡片标题栏
+    bar_h = 74
+    d.rounded_rectangle([card_x, card_y, card_x + card_w, card_y + bar_h], radius=24, fill=(34, 43, 66))
+    d.rectangle([card_x, card_y + bar_h // 2, card_x + card_w, card_y + bar_h], fill=(34, 43, 66))
+    for i, col in enumerate([(255, 95, 86), (255, 189, 46), (39, 201, 63)]):
+        cx = card_x + 40 + i * 40
+        d.ellipse([cx - 10, card_y + bar_h // 2 - 10, cx + 10, card_y + bar_h // 2 + 10], fill=col)
+    d.text((card_x + 175, card_y + 20), label, font=load_font(30), fill=(150, 160, 185))
 
+    # 代码行
     code_font = load_font(34)
-    for ln in extract_code_lines(body or "", limit=8):
+    code_lines = extract_code_lines(body or "", limit=6)
+    if not code_lines:
+        code_lines = ["$ 深入技术原理与实战", "$ 排障思路 + 最佳实践"]
+    cy = card_y + bar_h + 40
+    for ln in code_lines:
         kind = classify_code_line(ln)
         if kind == "err":
             color = (255, 92, 92)
@@ -410,17 +458,23 @@ def make_tech_cover(title, topics, out_path, body=None, subtitle=None):
         elif kind == "path":
             color = (255, 214, 120)
         else:
-            color = (190, 200, 215)
-        d.text((win_x + 45, ty), ln, font=code_font, fill=color)
-        ty += 56
+            color = (196, 206, 224)
+        d.text((card_x + 44, cy), ln, font=code_font, fill=color)
+        cy += 58
+        if cy > card_y + card_h - 50:
+            break
 
-    # 底部标签
-    bf = load_font(30)
-    tag = "  ".join("#" + t for t in topics[:6])
-    d.text((60, H - 130), tag, font=bf, fill=accent)
+    # 7) 底部话题标签胶囊
+    ty2 = H - 120
+    x = 60
+    tag_font = load_font(30)
+    for t in topics[:6]:
+        x = _draw_pill(d, x, ty2, "#" + t, tag_font, (255, 255, 255), (30, 36, 55), pad=16, height=54)
+        if x > W - 160:
+            break
 
-    # 顶部大标题（窗口外，弱化）
-    d.text((60, 70), f"$ {title[:22]}", font=load_font(46), fill=(220, 228, 240))
+    # 8) 底部装饰线
+    d.line([60, H - 38, W - 60, H - 38], fill=(255, 255, 255), width=2)
 
     img.save(out_path)
 
