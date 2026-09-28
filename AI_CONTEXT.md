@@ -37,9 +37,11 @@
 
 ## Conventions & Gotchas
 
-- Run: `npm run dev`
-- Build: `npm run build`
-- Preview: `npm run preview`
+- 本地开发: `npm run dev` → 访问 http://localhost:4321/（base=`/`，不要再带 `/blog-zeng/`）
+- 构建: `npm run build`（产物在 `dist/`）
+- 预览: `npm run preview` → 访问 http://localhost:4321/（接近线上效果）
+- 部署: push 到 main 后，GitHub Actions `deploy.yml` 自动构建并部署 GitHub Pages（自定义域名 future.zj.cn）
+- 完整启动/部署说明见 `README.md`
 - 同步文章: `python3 scripts/sync_cnblogs.py`（可加 `--update N` / `--no-tags` / `--dry-run` / `--limit N`）
 - 小红书草稿: `python3 scripts/publish_xhs.py <pid> --dry-run [--title "..."] [--out xhs_drafts]`
 - 发布小红书: `python3 scripts/publish_xhs.py <pid> --to-draft` 或 `--publish`（需本机扫码）
@@ -56,6 +58,6 @@
 
 ## Handoff
 
-- last_updated: 2026-09-28 10:15
+- last_updated: 2026-09-28 11:20
 - tool: Codex
-- notes: 当前有未提交改动，且 `scripts/publish_xhs.py` 是新增文件；下次会话先检查 `git status`。
+- notes: 本地 404 已解决（根因是 4321 端口残留旧 `astro preview` 进程，已结束并重启 `npm run dev`）；`README.md` 与 `AI_CONTEXT.md` 已补充本地启动/部署/404 排查说明，尚未提交推送。
