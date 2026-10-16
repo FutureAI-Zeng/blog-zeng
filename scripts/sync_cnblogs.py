@@ -317,6 +317,11 @@ def main():
     all_pids = sitemap_pids()
     have = local_pids()
     print(f"      线上 {len(all_pids)} 篇 | 本地 {len(have)} 篇")
+    if not all_pids:
+        print("❌ 获取 sitemap 失败：线上返回 0 篇。")
+        print("   常见原因：当前网络/IP 被 cnblogs 拦截（GitHub Actions 的数据中心 IP 常被拦），或网络异常。")
+        print("   解决：改用本地运行 `python scripts/sync_cnblogs.py`（本机 IP 通常可正常抓取）。")
+        return 2
     new_pids = [p for p in all_pids if p not in have]
     print(f"      新增待同步: {len(new_pids)} 篇")
     if args.limit:

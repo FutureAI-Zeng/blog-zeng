@@ -2,7 +2,7 @@ name: Sync from cnblogs
 
 # 两种触发方式：
 # 1) 手动：GitHub 仓库 → Actions → "Sync from cnblogs" → Run workflow
-# 2) 定时：默认每周一 UTC 02:00（北京时间 10:00），可改 cron 或删掉 schedule 段
+# 2) 定时：默认每天 UTC 02:00（北京时间 10:00）；GitHub 对低频定时任务会加随机延迟
 on:
   workflow_dispatch:
     inputs:
@@ -11,7 +11,7 @@ on:
         required: false
         default: '0'
   schedule:
-    - cron: '0 2 * * 1'
+    - cron: '0 2 * * *'
 
 permissions:
   contents: write
